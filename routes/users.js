@@ -30,6 +30,9 @@ const express = require("express");
 const router = express.Router();
 const db = require("../db");
 const bcrypt = require("bcrypt");
+const jwt = require('jsonwebtoken');
+
+const SECRET = "NEVER EVER MAKE THIS PUBLIC IN PRODUCTION!"
 
 router.get("/", async (req, res, next) => {
   try {
@@ -53,6 +56,7 @@ router.post("/", async (req, res, next) => {
   }
 });
 
+// allow user to login
 router.post("/login", async (req, res, next) => {
   try {
     // try to find the user first
@@ -76,8 +80,19 @@ router.post("/login", async (req, res, next) => {
         message: "Invalid Password"
       });
     }
+
+    // create jwt token using sign() method
+    const token = jwt.sign({
+        username: foundUser.rows[0].username
+      },
+      SECRET, {
+        expiresIn: 60 * 60 // expire in an hour
+      }
+    );
+
+
     return res.json({
-      message: "Logged In!"
+      token
     });
   } catch (e) {
     return res.json(e);
